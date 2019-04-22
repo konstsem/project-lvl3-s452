@@ -1,16 +1,16 @@
-#RSS Reader
+## RSS Reader
 
 The third project for learning frontend by Hexlet (another attempt)
 
 There will be badges
 
-## Setup
+# Setup
 
 ```
 npm install
 ```
 
-## Run
+# Run
 
 ```
 make develop
