@@ -1,11 +1,11 @@
 /* global document */
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { isURL } from 'validator';
-// import axios from 'axios';
+import axios from 'axios';
 
-// const corsProxy = 'https://cors-anywhere.herokuapp.com/';
+const corsProxy = 'https://cors-anywhere.herokuapp.com/';
 
-// const parser = new DOMParser();
+const parser = new DOMParser();
 
 const app = () => {
   const state = {
@@ -19,11 +19,16 @@ const app = () => {
     }
   };
 
-  const render = () => {
-    const rssList = document.querySelector('.list');
-    const li = document.createElement('li');
-    li.textContent = 'Nothing';
-    rssList.append(li);
+  const renderFeed = (feed) => {
+    const channelTitle = feed.querySelector('title').textContent;
+    const channelDiscription = feed.querySelector('discription');
+    const newRSSListItem =
+    `<ul class="list-group">
+      <div class='channelTitle'>${channelTitle}</div>
+      <div class='channelDiscription'>${channelDiscription ? channelDiscription.textContent : ''}</div>
+    </ul>`;
+    const RSSFeeds = document.querySelector('.RSSFeeds');
+    RSSFeeds.insertAdjacentHTML('beforeend', newRSSListItem);
   };
 
   const input = document.querySelector('input');
@@ -34,14 +39,10 @@ const app = () => {
   button.addEventListener('click', () => {
     if (!!input.value && isURL(input.value) && !state.visited.includes(input.value)) {
       state.visited.push(input.value);
-      // axios(`${corsProxy}${input.value}`)
-      //   .then(res => parser.parseFromString(res.data, 'application/xml'))
-      // .then(data => data.querySelectorAll('item'))
-      // .then(console.log)
-      // .catch(err => console.log(err));
-
-      render();
-
+      axios(`${corsProxy}${input.value}`)
+        .then(res => parser.parseFromString(res.data, 'text/xml'))
+        .then(renderFeed)
+        .catch(err => console.log(err));
       input.value = '';
     }
   });
