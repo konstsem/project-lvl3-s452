@@ -22,8 +22,7 @@ const app = () => {
   const renderFeed = (feed) => {
     const channelTitle = feed.querySelector('title').textContent;
     const channelDiscription = feed.querySelector('discription');
-    const newRSSListItem =
-    `<ul class="list-group">
+    const newRSSListItem = `<ul class="list-group">
       <div class='channelTitle'>${channelTitle}</div>
       <div class='channelDiscription'>${channelDiscription ? channelDiscription.textContent : ''}</div>
     </ul>`;
