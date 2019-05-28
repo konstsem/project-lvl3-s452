@@ -1,4 +1,4 @@
-/* global document */
+/* global document, DOMParser */
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { isURL } from 'validator';
 import axios from 'axios';
