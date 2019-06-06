@@ -26,7 +26,8 @@ const app = () => {
 
   // функция перерисовки rss фидов из state
   const renderFeeds = () => {
-    console.log('render was performed', state);
+    // const RSSList = state.feeds.reduce((acc, item) =>
+    // `${acc}<li class="list-group">${item.title}</li>`, '');
     // const channelTitle = feed.querySelector('title').textContent;
     // const channelDiscription = feed.querySelector('discription');
     // const newRSSListItem = `<ul class="list-group">
@@ -35,7 +36,9 @@ const app = () => {
     // channelDiscription.textContent : ''}</div>
     // </ul>`;
     // const RSSFeeds = document.querySelector('.RSSFeeds');
-    // RSSFeeds.insertAdjacentHTML('beforeend', newRSSListItem);
+    // const newRSSFeeds = document.createElement('div');
+    // newRSSFeeds.insertAdjacentHTML('beforeend', RSSList);
+    // RSSFeeds.replaceWith(newRSSFeeds);
   };
 
   // пока корявое но рабочее решение сохранения фида
@@ -48,7 +51,7 @@ const app = () => {
     };
     newFeed.title = feed.querySelector('title').textContent;
     const description = feed.querySelector('description');
-    // описание может отсутствовать, поэтому проверяем
+    // описание может отсутствовать, поэтому проверяем его наличие
     if (description) {
       newFeed.description = description.textContent;
     }
@@ -60,6 +63,7 @@ const app = () => {
       newFeed.articles.push(newItem);
     });
     state.feeds.push(newFeed);
+    console.log(state);
   };
 
   watch(state, 'feeds', renderFeeds);
@@ -77,6 +81,7 @@ const app = () => {
       axios(`${corsProxy}${input.value}`)
         .then(res => parser.parseFromString(res.data, 'text/xml'))
         .then(saveFeedToState)
+        // нужно написать обработку ошибок, для вывода пользователю
         .catch(err => console.log(err));
       input.value = '';
     }
