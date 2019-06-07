@@ -26,24 +26,26 @@ const app = () => {
 
   // функция перерисовки rss фидов из state
   const renderFeeds = () => {
-    // const RSSList = state.feeds.reduce((acc, item) =>
-    // `${acc}<li class="list-group">${item.title}</li>`, '');
-    // const channelTitle = feed.querySelector('title').textContent;
-    // const channelDiscription = feed.querySelector('discription');
-    // const newRSSListItem = `<ul class="list-group">
-    //   <div class='channelTitle'>${channelTitle}</div>
-    //   <div class='channelDiscription'>${channelDiscription ?
-    // channelDiscription.textContent : ''}</div>
-    // </ul>`;
-    // const RSSFeeds = document.querySelector('.RSSFeeds');
-    // const newRSSFeeds = document.createElement('div');
-    // newRSSFeeds.insertAdjacentHTML('beforeend', RSSList);
-    // RSSFeeds.replaceWith(newRSSFeeds);
+    const newFeed = state.feeds[state.feeds.length - 1];
+    const newListItem = document.createElement('li');
+    newListItem.classList.add('list-group-item', 'feed');
+
+    const feedItems = newFeed.articles
+      .reduce((acc, item) => `${acc}<li class="list-group-item channelItem">
+      <a href="${item.link}">${item.title}</a></li>`, '');
+
+    const feedContent = `<h5 class="channelTitle">${newFeed.title}</h5>
+    <div class="channelDiscription">${newFeed.description}</div>
+    <ul class="list-group channelItems">${feedItems}</ul>`;
+    newListItem.insertAdjacentHTML('beforeend', feedContent);
+
+    const RSSFeeds = document.querySelector('.feedsList');
+    RSSFeeds.append(newListItem);
   };
 
   // пока корявое но рабочее решение сохранения фида
   const saveFeedToState = (feed) => {
-    console.log(feed);
+    // console.log(feed);
     const newFeed = {
       title: '',
       description: '',
@@ -63,7 +65,7 @@ const app = () => {
       newFeed.articles.push(newItem);
     });
     state.feeds.push(newFeed);
-    console.log(state);
+    // console.log(state);
   };
 
   watch(state, 'feeds', renderFeeds);
