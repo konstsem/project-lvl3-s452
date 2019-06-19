@@ -1,8 +1,10 @@
 /* global document, DOMParser */
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/js/dist/modal';
 import { isURL } from 'validator';
 import axios from 'axios';
 import WatchJS from 'melanke-watchjs';
+// import $ from 'jquery';
 
 const corsProxy = 'https://cors-anywhere.herokuapp.com/';
 
@@ -32,7 +34,7 @@ const app = () => {
 
     const feedItems = newFeed.articles
       .reduce((acc, item) => `${acc}<li class="list-group-item channelItem">
-      <a href="${item.link}">${item.title}</a></li>`, '');
+        <a href="${item.link}">${item.title}</a><button type="button" class="btn btn-primary" data-toggle="modal" data-target="#descriptionModal" data-whatever=${item.description}>Description</button></li>`, '');
 
     const feedContent = `<h5 class="channelTitle">${newFeed.title}</h5>
     <div class="channelDiscription">${newFeed.description}</div>
@@ -45,7 +47,7 @@ const app = () => {
 
   // пока корявое но рабочее решение сохранения фида
   const saveFeedToState = (feed) => {
-    // console.log(feed);
+    console.log(feed);
     const newFeed = {
       title: '',
       description: '',
@@ -62,6 +64,7 @@ const app = () => {
       const newItem = {};
       newItem.title = item.querySelector('title').textContent;
       newItem.link = item.querySelector('link').textContent;
+      newItem.description = item.querySelector('description').textContent;
       newFeed.articles.push(newItem);
     });
     state.feeds.push(newFeed);
@@ -90,4 +93,5 @@ const app = () => {
   });
 };
 
+// $('body').css('background-color', 'grey');
 app();
