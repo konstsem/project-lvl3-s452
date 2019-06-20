@@ -4,7 +4,7 @@ import 'bootstrap/js/dist/modal';
 import { isURL } from 'validator';
 import axios from 'axios';
 import WatchJS from 'melanke-watchjs';
-// import $ from 'jquery';
+import $ from 'jquery';
 
 const corsProxy = 'https://cors-anywhere.herokuapp.com/';
 
@@ -34,7 +34,9 @@ const app = () => {
 
     const feedItems = newFeed.articles
       .reduce((acc, item) => `${acc}<li class="list-group-item channelItem">
-        <a href="${item.link}">${item.title}</a><button type="button" class="btn btn-primary" data-toggle="modal" data-target="#descriptionModal" data-whatever=${item.description}>Description</button></li>`, '');
+        <a href="${item.link}">${item.title}</a><button type="button"
+        class="btn btn-primary" data-toggle="modal" data-target="#descriptionModal"
+        data-whatever="${item.description}">Description</button></li>`, '');
 
     const feedContent = `<h5 class="channelTitle">${newFeed.title}</h5>
     <div class="channelDiscription">${newFeed.description}</div>
@@ -47,7 +49,7 @@ const app = () => {
 
   // пока корявое но рабочее решение сохранения фида
   const saveFeedToState = (feed) => {
-    console.log(feed);
+    // console.log(feed);
     const newFeed = {
       title: '',
       description: '',
@@ -93,5 +95,12 @@ const app = () => {
   });
 };
 
-// $('body').css('background-color', 'grey');
+$('#descriptionModal').on('show.bs.modal', function foo(event) {
+  const button = $(event.relatedTarget); // Button that triggered the modal
+  const description = button.data('whatever'); // Extract info from data-* attributes
+  const modal = $(this);
+  // modal.find('.modal-title').text('New message to ' + recipient)
+  modal.find('.modal-body').text(description);
+});
+
 app();
