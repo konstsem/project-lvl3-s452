@@ -33,7 +33,7 @@ const app = () => {
     newListItem.classList.add('list-group-item', 'feed');
 
     const feedItems = newFeed.articles
-      .reduce((acc, item) => `${acc}<li class="list-group-item channelItem">
+      .reduce((acc, item) => `${acc}<li class="list-group-item d-flex justify-content-between channelItem">
         <a href="${item.link}">${item.title}</a><button type="button"
         class="btn btn-primary" data-toggle="modal" data-target="#descriptionModal"
         data-whatever="${item.description}">Description</button></li>`, '');
