@@ -30,6 +30,9 @@ const app = () => {
 
   // функция перерисовки rss фидов из state (view)
   const renderFeeds = () => {
+    // пока происходит отрисовка последнего фида
+    // сейчас нужно переписать так, чтобы перерисовывались все фиды
+    // но желательно не целиком, а лишь новые items
     const newFeed = state.feeds[state.feeds.length - 1];
     const newListItem = document.createElement('li');
     newListItem.classList.add('list-group-item', 'feed');
