@@ -13,11 +13,13 @@ const { watch } = WatchJS;
 
 const app = () => {
   // в visitedURL хранятся посещенные линки
-  // в feeds будут хранится наименование, описание и статьи из rss feeds
+  // в feeds будут хранится наименование, описание и статьи из rss feeds (model)
   const state = {
     visitedURL: [],
     feeds: [],
   };
+
+  // функция, устанавливающая цвет бордюра, в зависимости от валидации (view)
   const setBorderColor = (el, inputValue) => {
     if ((inputValue !== '' && !isURL(inputValue)) || state.visitedURL.includes(inputValue)) {
       el.classList.add('is-invalid');
@@ -26,7 +28,7 @@ const app = () => {
     }
   };
 
-  // функция перерисовки rss фидов из state
+  // функция перерисовки rss фидов из state (view)
   const renderFeeds = () => {
     const newFeed = state.feeds[state.feeds.length - 1];
     const newListItem = document.createElement('li');
@@ -47,9 +49,9 @@ const app = () => {
     RSSFeeds.append(newListItem);
   };
 
-  // пока корявое но рабочее решение сохранения фида
+  // пока корявое но рабочее решение сохранения фида (controller)
   const saveFeedToState = (feed) => {
-    // console.log(feed);
+    console.log(feed, state.feeds);
     const newFeed = {
       title: '',
       description: '',
@@ -93,11 +95,15 @@ const app = () => {
       input.value = '';
     }
   });
+
+  // обновление данных rss потоков ()
+  setInterval(() => console.log(state.visitedURL), 5000);
 };
 
+// передача описания в модальное окно
 $('#descriptionModal').on('show.bs.modal', function foo(event) {
-  const button = $(event.relatedTarget); // Button that triggered the modal
-  const description = button.data('whatever'); // Extract info from data-* attributes
+  const button = $(event.relatedTarget);
+  const description = button.data('whatever');
   const modal = $(this);
   // modal.find('.modal-title').text('New message to ' + recipient)
   modal.find('.modal-body').text(description);
