@@ -11,6 +11,8 @@ const corsProxy = 'https://cors-anywhere.herokuapp.com/';
 const parser = new DOMParser();
 const { watch } = WatchJS;
 
+const timeInterval = 5000;
+
 const app = () => {
   // в visitedURL хранятся посещенные линки
   // в feeds будут хранится наименование, описание и статьи из rss feeds (model)
@@ -53,7 +55,8 @@ const app = () => {
   };
 
   // пока корявое но рабочее решение сохранения фида (controller)
-  const saveFeedToState = (feed) => {
+  // const saveFeedToState = (feed) => {
+  const feedAsObject = (feed) => {
     console.log(feed, state.feeds);
     const newFeed = {
       title: '',
@@ -74,7 +77,8 @@ const app = () => {
       newItem.description = item.querySelector('description').textContent;
       newFeed.articles.push(newItem);
     });
-    state.feeds.push(newFeed);
+    // state.feeds.push(newFeed);
+    return newFeed;
     // console.log(state);
   };
 
@@ -92,7 +96,8 @@ const app = () => {
       state.visitedURL.push(input.value);
       axios(`${corsProxy}${input.value}`)
         .then(res => parser.parseFromString(res.data, 'text/xml'))
-        .then(saveFeedToState)
+        // .then(saveFeedToState)
+        .then(feed => state.feeds.push(feedAsObject(feed)))
         // нужно написать обработку ошибок, для вывода пользователю
         .catch(err => console.log(err));
       input.value = '';
@@ -100,7 +105,7 @@ const app = () => {
   });
 
   // обновление данных rss потоков ()
-  setInterval(() => console.log(state.visitedURL), 5000);
+  setInterval(() => console.log(state.visitedURL), timeInterval);
 };
 
 // передача описания в модальное окно
