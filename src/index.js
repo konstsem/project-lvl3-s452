@@ -16,14 +16,16 @@ const timeInterval = 5000;
 const app = () => {
   // в visitedURL хранятся посещенные линки
   // в feeds будут хранится наименование, описание и статьи из rss feeds (model)
+  // state -> visited(arr) -> { url, content }
   const state = {
-    visitedURL: [],
-    feeds: [],
+    visited: [],
+    // попытка получить массив посещенных урлов
+    getVisitedUrls: () => state.visited.reduce((acc, item) => [...acc, item.url], []),
   };
 
   // функция, устанавливающая цвет бордюра, в зависимости от валидации (view)
   const setBorderColor = (el, inputValue) => {
-    if ((inputValue !== '' && !isURL(inputValue)) || state.visitedURL.includes(inputValue)) {
+    if ((inputValue !== '' && !isURL(inputValue)) || state.visited.includes(inputValue)) {
       el.classList.add('is-invalid');
     } else {
       el.classList.remove('is-invalid');
@@ -35,7 +37,7 @@ const app = () => {
     // пока происходит отрисовка последнего фида
     // сейчас нужно переписать так, чтобы перерисовывались все фиды
     // но желательно не целиком, а лишь новые items
-    const newFeed = state.feeds[state.feeds.length - 1];
+    const newFeed = state.visited[state.visited.length - 1].content;
     const newListItem = document.createElement('li');
     newListItem.classList.add('list-group-item', 'feed');
 
@@ -57,7 +59,6 @@ const app = () => {
   // пока корявое но рабочее решение сохранения фида (controller)
   // const saveFeedToState = (feed) => {
   const feedAsObject = (feed) => {
-    console.log(feed, state.feeds);
     const newFeed = {
       title: '',
       description: '',
@@ -82,7 +83,7 @@ const app = () => {
     // console.log(state);
   };
 
-  watch(state, 'feeds', renderFeeds);
+  watch(state, 'visited', renderFeeds);
 
   // нужно написать функцию isValid или что то подобное
   // и убрать проверку в двух лиснерах
@@ -92,12 +93,14 @@ const app = () => {
   });
   const button = document.querySelector('button');
   button.addEventListener('click', () => {
-    if (!!input.value && isURL(input.value) && !state.visitedURL.includes(input.value)) {
-      state.visitedURL.push(input.value);
+    if (!!input.value && isURL(input.value) && !state.visited.includes(input.value)) {
+      // need rewrite
+      // state.visitedURL.push(input.value);
       axios(`${corsProxy}${input.value}`)
         .then(res => parser.parseFromString(res.data, 'text/xml'))
         // .then(saveFeedToState)
-        .then(feed => state.feeds.push(feedAsObject(feed)))
+        // .then(feed => state.feeds.push(feedAsObject(feed)))
+        .then(feed => state.visited.push({ url: input.value, content: feedAsObject(feed) }))
         // нужно написать обработку ошибок, для вывода пользователю
         .catch(err => console.log(err));
       input.value = '';
@@ -105,7 +108,7 @@ const app = () => {
   });
 
   // обновление данных rss потоков ()
-  setInterval(() => console.log(state.visitedURL), timeInterval);
+  setInterval(() => console.log(state.visited), timeInterval);
 };
 
 // передача описания в модальное окно
