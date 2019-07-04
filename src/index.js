@@ -1,9 +1,11 @@
 /* global document, DOMParser */
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/js/dist/modal';
+import 'bootstrap/js/dist/alert';
 import { isURL } from 'validator';
 import axios from 'axios';
 import WatchJS from 'melanke-watchjs';
+// import _ from 'lodash';
 import $ from 'jquery';
 
 const corsProxy = 'https://cors-anywhere.herokuapp.com/';
@@ -58,7 +60,7 @@ const app = () => {
 
   // пока корявое но рабочее решение сохранения фида (controller)
   // const saveFeedToState = (feed) => {
-  const feedAsObject = (feed) => {
+  const getFeedAsObject = (feed) => {
     const newFeed = {
       title: '',
       description: '',
@@ -96,11 +98,12 @@ const app = () => {
     if (!!input.value && isURL(input.value) && !state.visited.includes(input.value)) {
       // need rewrite
       // state.visitedURL.push(input.value);
+      const currentUrl = input.value;
       axios(`${corsProxy}${input.value}`)
         .then(res => parser.parseFromString(res.data, 'text/xml'))
         // .then(saveFeedToState)
         // .then(feed => state.feeds.push(feedAsObject(feed)))
-        .then(feed => state.visited.push({ url: input.value, content: feedAsObject(feed) }))
+        .then(feed => state.visited.push({ url: currentUrl, content: getFeedAsObject(feed) }))
         // нужно написать обработку ошибок, для вывода пользователю
         .catch(err => console.log(err));
       input.value = '';
@@ -108,7 +111,7 @@ const app = () => {
   });
 
   // обновление данных rss потоков ()
-  setInterval(() => console.log(state.visited), timeInterval);
+  setInterval(() => state.visited.forEach(feed => console.log(feed.url)), timeInterval);
 };
 
 // передача описания в модальное окно
