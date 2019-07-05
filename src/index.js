@@ -16,18 +16,16 @@ const { watch } = WatchJS;
 const timeInterval = 5000;
 
 const app = () => {
-  // в visitedURL хранятся посещенные линки
-  // в feeds будут хранится наименование, описание и статьи из rss feeds (model)
   // state -> visited(arr) -> { url, content }
   const state = {
     visited: [],
-    // попытка получить массив посещенных урлов
+    // return array of visited urls
     getVisitedUrls: () => state.visited.reduce((acc, item) => [...acc, item.url], []),
   };
 
   // функция, устанавливающая цвет бордюра, в зависимости от валидации (view)
   const setBorderColor = (el, inputValue) => {
-    if ((inputValue !== '' && !isURL(inputValue)) || state.visited.includes(inputValue)) {
+    if ((inputValue !== '' && !isURL(inputValue)) || state.getVisitedUrls().includes(inputValue)) {
       el.classList.add('is-invalid');
     } else {
       el.classList.remove('is-invalid');
@@ -80,9 +78,7 @@ const app = () => {
       newItem.description = item.querySelector('description').textContent;
       newFeed.articles.push(newItem);
     });
-    // state.feeds.push(newFeed);
     return newFeed;
-    // console.log(state);
   };
 
   watch(state, 'visited', renderFeeds);
@@ -95,17 +91,17 @@ const app = () => {
   });
   const button = document.querySelector('button');
   button.addEventListener('click', () => {
-    if (!!input.value && isURL(input.value) && !state.visited.includes(input.value)) {
+    if (!!input.value && isURL(input.value) && !state.getVisitedUrls().includes(input.value)) {
       // need rewrite
-      // state.visitedURL.push(input.value);
       const currentUrl = input.value;
       axios(`${corsProxy}${input.value}`)
         .then(res => parser.parseFromString(res.data, 'text/xml'))
         // .then(saveFeedToState)
-        // .then(feed => state.feeds.push(feedAsObject(feed)))
         .then(feed => state.visited.push({ url: currentUrl, content: getFeedAsObject(feed) }))
         // нужно написать обработку ошибок, для вывода пользователю
-        .catch(err => console.log(err));
+        .catch((err) => {
+          console.log(err);
+        });
       input.value = '';
     }
   });
@@ -123,4 +119,5 @@ $('#descriptionModal').on('show.bs.modal', function foo(event) {
   modal.find('.modal-body').text(description);
 });
 
+$('.alert').alert('close'); // hide alerts
 app();
