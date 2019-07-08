@@ -21,6 +21,8 @@ const app = () => {
     visited: [],
     // return array of visited urls
     getVisitedUrls: () => state.visited.reduce((acc, item) => [...acc, item.url], []),
+    //  saving feed to visited
+    saveFeedToState: (url, content) => state.visited.push({ url, content }),
   };
 
   // функция, устанавливающая цвет бордюра, в зависимости от валидации (view)
@@ -57,7 +59,6 @@ const app = () => {
   };
 
   // пока корявое но рабочее решение сохранения фида (controller)
-  // const saveFeedToState = (feed) => {
   const getFeedAsObject = (feed) => {
     const newFeed = {
       title: '',
@@ -81,6 +82,13 @@ const app = () => {
     return newFeed;
   };
 
+  const callAlert = (alertType, text) => {
+    $('.alert').alert('close');
+    const alert = `<div class="alert alert-${alertType} role="alert">${text}</div>`;
+    const body = document.querySelector('body');
+    body.insertAdjacentHTML('afterbegin', alert);
+  };
+
   watch(state, 'visited', renderFeeds);
 
   // нужно написать функцию isValid или что то подобное
@@ -94,20 +102,23 @@ const app = () => {
     if (!!input.value && isURL(input.value) && !state.getVisitedUrls().includes(input.value)) {
       // need rewrite
       const currentUrl = input.value;
-      axios(`${corsProxy}${input.value}`)
+      input.value = '';
+      callAlert('info', 'Идет загрузка данных');
+      axios(`${corsProxy}${currentUrl}`)
         .then(res => parser.parseFromString(res.data, 'text/xml'))
-        // .then(saveFeedToState)
-        .then(feed => state.visited.push({ url: currentUrl, content: getFeedAsObject(feed) }))
-        // нужно написать обработку ошибок, для вывода пользователю
+        .then((feed) => {
+          state.saveFeedToState(currentUrl, getFeedAsObject(feed));
+          $('.alert').alert('close');
+        })
         .catch((err) => {
           console.log(err);
+          callAlert('warning', err);
         });
-      input.value = '';
     }
   });
 
   // обновление данных rss потоков ()
-  setInterval(() => state.visited.forEach(feed => console.log(feed.url)), timeInterval);
+  setInterval(() => state.getVisitedUrls().forEach(console.log), timeInterval);
 };
 
 // передача описания в модальное окно
@@ -119,5 +130,4 @@ $('#descriptionModal').on('show.bs.modal', function foo(event) {
   modal.find('.modal-body').text(description);
 });
 
-$('.alert').alert('close'); // hide alerts
 app();
