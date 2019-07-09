@@ -25,21 +25,12 @@ const app = () => {
     saveFeedToState: (url, content) => state.visited.push({ url, content }),
   };
 
-  // функция, устанавливающая цвет бордюра, в зависимости от валидации (view)
-  const setBorderColor = (el, inputValue) => {
-    if ((inputValue !== '' && !isURL(inputValue)) || state.getVisitedUrls().includes(inputValue)) {
-      el.classList.add('is-invalid');
-    } else {
-      el.classList.remove('is-invalid');
-    }
-  };
+  const isValid = value => isURL(value) && !state.getVisitedUrls().includes(value);
 
   // функция перерисовки rss фидов из state (view)
-  const renderFeeds = () => {
-    // пока происходит отрисовка последнего фида
-    // сейчас нужно переписать так, чтобы перерисовывались все фиды
-    // но желательно не целиком, а лишь новые items
-    const newFeed = state.visited[state.visited.length - 1].content;
+  const renderFeeds = (prop) => {
+    // console.log(state.visited, prop, action);
+    const newFeed = state.visited[prop].content;
     const newListItem = document.createElement('li');
     newListItem.classList.add('list-group-item', 'feed');
 
@@ -89,18 +80,30 @@ const app = () => {
     body.insertAdjacentHTML('afterbegin', alert);
   };
 
-  watch(state, 'visited', renderFeeds);
+  watch(state.visited, renderFeeds);
 
-  // нужно написать функцию isValid или что то подобное
-  // и убрать проверку в двух лиснерах
+  // eventListeners
   const input = document.querySelector('input');
   input.addEventListener('input', (event) => {
-    setBorderColor(input, event.target.value);
+    const currentValue = event.target.value;
+    const element = document.querySelector('input');
+    if (currentValue === '') {
+      element.classList.remove('is-valid', 'is-invalid');
+    } else if (isValid(currentValue)) {
+      element.classList.remove('is-invalid');
+      element.classList.add('is-valid');
+    } else {
+      element.classList.remove('is-valid');
+      element.classList.add('is-invalid');
+    }
   });
+
   const button = document.querySelector('button');
   button.addEventListener('click', () => {
-    if (!!input.value && isURL(input.value) && !state.getVisitedUrls().includes(input.value)) {
+    if (input.value !== '' && isValid(input.value)) {
       // need rewrite
+      const element = document.querySelector('input');
+      element.classList.remove('is-valid');
       const currentUrl = input.value;
       input.value = '';
       callAlert('info', 'Идет загрузка данных');
@@ -113,12 +116,13 @@ const app = () => {
         .catch((err) => {
           console.log(err);
           callAlert('warning', err);
+          // $('.alert-warning').alert();
         });
     }
   });
 
   // обновление данных rss потоков ()
-  setInterval(() => state.getVisitedUrls().forEach(console.log), timeInterval);
+  // setInterval(() => state.visited[0].content.articles.push({ title: 'test', url: 'http://test.org', description: 'test description' }), timeInterval);
 };
 
 // передача описания в модальное окно
