@@ -13,7 +13,7 @@ const corsProxy = 'https://cors-anywhere.herokuapp.com/';
 const parser = new DOMParser();
 const { watch } = WatchJS;
 
-const timeInterval = 5000;
+// const timeInterval = 5000;
 
 const app = () => {
   // state -> visited(arr) -> { url, content }
@@ -87,6 +87,7 @@ const app = () => {
   input.addEventListener('input', (event) => {
     const currentValue = event.target.value;
     const element = document.querySelector('input');
+    // need rewrite
     if (currentValue === '') {
       element.classList.remove('is-valid', 'is-invalid');
     } else if (isValid(currentValue)) {
@@ -98,8 +99,8 @@ const app = () => {
     }
   });
 
-  const button = document.querySelector('button');
-  button.addEventListener('click', () => {
+  const submitButton = document.querySelector('button');
+  submitButton.addEventListener('click', () => {
     if (input.value !== '' && isValid(input.value)) {
       // need rewrite
       const element = document.querySelector('input');
@@ -114,7 +115,7 @@ const app = () => {
           $('.alert').alert('close');
         })
         .catch((err) => {
-          console.log(err);
+          console.error(err);
           callAlert('warning', err);
           // $('.alert-warning').alert();
         });
