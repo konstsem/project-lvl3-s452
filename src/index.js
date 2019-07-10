@@ -16,20 +16,24 @@ const { watch } = WatchJS;
 // const timeInterval = 5000;
 
 const app = () => {
-  // state -> visited(arr) -> { url, content }
+  // state -> visited({ url: content })
   const state = {
     visited: [],
     // return array of visited urls
-    getVisitedUrls: () => state.visited.reduce((acc, item) => [...acc, item.url], []),
+    getVisitedUrls: function getVisitedUrls() {
+      return this.visited.reduce((acc, url) => [...acc, url.url], []);
+    },
     //  saving feed to visited
-    saveFeedToState: (url, content) => state.visited.push({ url, content }),
+    saveFeed: function saveFeed(url, content) {
+      this.visited.push({ url, content });
+    },
   };
 
   const isValid = value => isURL(value) && !state.getVisitedUrls().includes(value);
 
   // функция перерисовки rss фидов из state (view)
   const renderFeeds = (prop) => {
-    // console.log(state.visited, prop, action);
+    console.log(state.visited, prop);
     const newFeed = state.visited[prop].content;
     const newListItem = document.createElement('li');
     newListItem.classList.add('list-group-item', 'feed');
@@ -59,9 +63,7 @@ const app = () => {
     newFeed.title = feed.querySelector('title').textContent;
     const description = feed.querySelector('description');
     // описание может отсутствовать, поэтому проверяем его наличие
-    if (description) {
-      newFeed.description = description.textContent;
-    }
+    newFeed.description = description ? description.textContent : '';
     const items = feed.querySelectorAll('item');
     items.forEach((item) => {
       const newItem = {};
@@ -80,6 +82,7 @@ const app = () => {
     body.insertAdjacentHTML('afterbegin', alert);
   };
 
+  // watch(state.visited, renderFeeds);
   watch(state.visited, renderFeeds);
 
   // eventListeners
@@ -111,7 +114,7 @@ const app = () => {
       axios(`${corsProxy}${currentUrl}`)
         .then(res => parser.parseFromString(res.data, 'text/xml'))
         .then((feed) => {
-          state.saveFeedToState(currentUrl, getFeedAsObject(feed));
+          state.saveFeed(currentUrl, getFeedAsObject(feed));
           $('.alert').alert('close');
         })
         .catch((err) => {
