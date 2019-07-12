@@ -5,15 +5,15 @@ import 'bootstrap/js/dist/alert';
 import { isURL } from 'validator';
 import axios from 'axios';
 import WatchJS from 'melanke-watchjs';
-// import _ from 'lodash';
+import _ from 'lodash';
 import $ from 'jquery';
 
 const corsProxy = 'https://cors-anywhere.herokuapp.com/';
 
 const parser = new DOMParser();
-const { watch } = WatchJS;
+const { watch, callWatchers } = WatchJS;
 
-// const timeInterval = 5000;
+const timeInterval = 5000;
 
 const app = () => {
   // state -> visited({ url: content })
@@ -33,24 +33,33 @@ const app = () => {
 
   // функция перерисовки rss фидов из state (view)
   const renderFeeds = (prop) => {
-    console.log(state.visited, prop);
-    const newFeed = state.visited[prop].content;
+    const { url, content } = state.visited[prop];
+    // const newFeed = state.visited[prop].content;
     const newListItem = document.createElement('li');
     newListItem.classList.add('list-group-item', 'feed');
+    newListItem.dataset.url = url;
 
-    const feedItems = newFeed.articles
+    const feedItems = content.articles
       .reduce((acc, item) => `${acc}<li class="list-group-item d-flex justify-content-between channelItem">
         <a href="${item.link}">${item.title}</a><button type="button"
         class="btn btn-primary" data-toggle="modal" data-target="#descriptionModal"
         data-whatever="${item.description}">Description</button></li>`, '');
 
-    const feedContent = `<h5 class="channelTitle">${newFeed.title}</h5>
-    <div class="channelDiscription">${newFeed.description}</div>
+    const feedContent = `<h5 class="channelTitle">${content.title}</h5>
+    <div class="channelDiscription">${content.description}</div>
     <ul class="list-group channelItems">${feedItems}</ul>`;
     newListItem.insertAdjacentHTML('beforeend', feedContent);
 
-    const RSSFeeds = document.querySelector('.feedsList');
-    RSSFeeds.append(newListItem);
+    // check if element with given url is already render
+    const existElement = document.querySelector(`[data-url="${url}"]`);
+    if (existElement) {
+      // if yes, then rerender
+      existElement.replaceWith(newListItem);
+    } else {
+      // if no, just add to the list
+      const RSSFeeds = document.querySelector('.feedsList');
+      RSSFeeds.append(newListItem);
+    }
   };
 
   // пока корявое но рабочее решение сохранения фида (controller)
@@ -126,7 +135,29 @@ const app = () => {
   });
 
   // обновление данных rss потоков ()
-  // setInterval(() => state.visited[0].content.articles.push({ title: 'test', url: 'http://test.org', description: 'test description' }), timeInterval);
+  const updateRSS = () => {
+    if (state.visited.length === 0) {
+      setTimeout(updateRSS, timeInterval);
+    } else {
+      state.visited.forEach((item, i) => {
+        axios(`${corsProxy}${item.url}`)
+          .then(res => parser.parseFromString(res.data, 'text/xml'))
+          .then((feed) => {
+            const receivedFeed = getFeedAsObject(feed);
+            _.assign(item.content.articles, receivedFeed.articles);
+            callWatchers(state.visited, i);
+            setTimeout(updateRSS, timeInterval);
+          })
+          .catch((err) => {
+            console.error(err);
+            callAlert('warning', err);
+          });
+      });
+    }
+  };
+
+  setTimeout(updateRSS, timeInterval);
+  // updateRSS();
 };
 
 // передача описания в модальное окно
