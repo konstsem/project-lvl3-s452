@@ -1,5 +1,5 @@
 develop:
-	npm run webpack-dev-server
+	npx webpack-dev-server
 
 install-deps:
 	npm install
@@ -12,7 +12,7 @@ test:
 	npm test
 
 lint:
-	npm run eslint .
+	npx eslint .
 
 publish:
 	npm publish --dry-run

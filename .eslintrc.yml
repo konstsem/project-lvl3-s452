@@ -9,6 +9,10 @@ env:
 
 parser: babel-eslint
 
+globals:
+  document: true
+  DOMParser: true
+
 extends:
   - 'airbnb-base'
   - 'plugin:jest/recommended'

@@ -1,4 +1,3 @@
-/* global document, DOMParser */
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/js/dist/modal';
 import 'bootstrap/js/dist/alert';
@@ -10,7 +9,6 @@ import $ from 'jquery';
 
 const corsProxy = 'https://cors-anywhere.herokuapp.com/';
 
-const parser = new DOMParser();
 const { watch, callWatchers } = WatchJS;
 
 const timeInterval = 5000;
@@ -21,7 +19,7 @@ const app = () => {
     visited: [],
     // return array of visited urls
     getVisitedUrls: function getVisitedUrls() {
-      return this.visited.reduce((acc, url) => [...acc, url.url], []);
+      return this.visited.map(item => item.url);
     },
     //  saving feed to visited
     saveFeed: function saveFeed(url, content) {
@@ -63,7 +61,9 @@ const app = () => {
   };
 
   // пока корявое но рабочее решение сохранения фида (controller)
-  const getFeedAsObject = (feed) => {
+  const parseFeed = (response) => {
+    const parser = new DOMParser();
+    const feed = parser.parseFromString(response.data, 'text/xml');
     const newFeed = {
       title: '',
       description: '',
@@ -91,14 +91,13 @@ const app = () => {
     body.insertAdjacentHTML('afterbegin', alert);
   };
 
-  // watch(state.visited, renderFeeds);
   watch(state.visited, renderFeeds);
 
   // eventListeners
   const input = document.querySelector('input');
   input.addEventListener('input', (event) => {
     const currentValue = event.target.value;
-    const element = document.querySelector('input');
+    const element = event.target;
     // need rewrite
     if (currentValue === '') {
       element.classList.remove('is-valid', 'is-invalid');
@@ -121,15 +120,13 @@ const app = () => {
       input.value = '';
       callAlert('info', 'Идет загрузка данных');
       axios(`${corsProxy}${currentUrl}`)
-        .then(res => parser.parseFromString(res.data, 'text/xml'))
-        .then((feed) => {
-          state.saveFeed(currentUrl, getFeedAsObject(feed));
+        .then((response) => {
+          state.saveFeed(currentUrl, parseFeed(response));
           $('.alert').alert('close');
         })
         .catch((err) => {
           console.error(err);
           callAlert('warning', err);
-          // $('.alert-warning').alert();
         });
     }
   });
@@ -141,9 +138,8 @@ const app = () => {
     } else {
       state.visited.forEach((item, i) => {
         axios(`${corsProxy}${item.url}`)
-          .then(res => parser.parseFromString(res.data, 'text/xml'))
-          .then((feed) => {
-            const receivedFeed = getFeedAsObject(feed);
+          .then((response) => {
+            const receivedFeed = parseFeed(response);
             _.assign(item.content.articles, receivedFeed.articles);
             callWatchers(state.visited, i);
             setTimeout(updateRSS, timeInterval);
@@ -157,7 +153,6 @@ const app = () => {
   };
 
   setTimeout(updateRSS, timeInterval);
-  // updateRSS();
 };
 
 // передача описания в модальное окно
@@ -165,7 +160,6 @@ $('#descriptionModal').on('show.bs.modal', function foo(event) {
   const button = $(event.relatedTarget);
   const description = button.data('whatever');
   const modal = $(this);
-  // modal.find('.modal-title').text('New message to ' + recipient)
   modal.find('.modal-body').text(description);
 });
 
