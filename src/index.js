@@ -18,13 +18,9 @@ const app = () => {
   const state = {
     visited: [],
     // return array of visited urls
-    getVisitedUrls: function getVisitedUrls() {
-      return this.visited.map(item => item.url);
-    },
+    getVisitedUrls: () => state.visited.map(item => item.url),
     //  saving feed to visited
-    saveFeed: function saveFeed(url, content) {
-      this.visited.push({ url, content });
-    },
+    saveFeed: (url, content) => state.visited.push({ url, content }),
   };
 
   const isValid = value => isURL(value) && !state.getVisitedUrls().includes(value);
