@@ -120,17 +120,15 @@ const app = () => {
     }
   };
 
-  // eventListeners
   const input = document.querySelector('input');
+
   input.addEventListener('input', ({ target }) => checkInputValidation(target));
 
-  const submitButton = document.querySelector('button');
-  submitButton.addEventListener('click', () => {
+  const submit = () => {
     if (input.value !== '' && isValid(input.value)) {
       // need rewrite
-      const element = document.querySelector('input');
-      element.classList.remove('is-valid');
       const currentUrl = input.value;
+      state.inputString = 'empty';
       input.value = '';
       callAlert('info', 'Идет загрузка данных');
       axios(`${corsProxy}${currentUrl}`)
@@ -143,7 +141,10 @@ const app = () => {
           callAlert('warning', err);
         });
     }
-  });
+  };
+
+  const submitButton = document.querySelector('button');
+  submitButton.addEventListener('click', submit);
 
   // обновление данных rss потоков ()
   const updateRSS = () => {
