@@ -17,13 +17,30 @@ const app = () => {
   // state -> visited({ url: content })
   const state = {
     visited: [],
+    inputString: 'empty',
     // return array of visited urls
     getVisitedUrls: () => state.visited.map(item => item.url),
-    //  saving feed to visited
+    // saving feed to visited
     saveFeed: (url, content) => state.visited.push({ url, content }),
   };
 
-  const isValid = value => isURL(value) && !state.getVisitedUrls().includes(value);
+  const setInputValidationAttr = () => {
+    const inputEl = document.querySelector('input');
+    const current = state.inputString;
+    switch (current) {
+      case 'invalid':
+        inputEl.classList.remove('is-valid');
+        inputEl.classList.add('is-invalid');
+        break;
+      case 'valid':
+        inputEl.classList.remove('is-invalid');
+        inputEl.classList.add('is-valid');
+        break;
+      default:
+        inputEl.classList.remove('is-valid', 'is-invalid');
+        break;
+    }
+  };
 
   // функция перерисовки rss фидов из state (view)
   const renderFeeds = (prop) => {
@@ -87,24 +104,25 @@ const app = () => {
     body.insertAdjacentHTML('afterbegin', alert);
   };
 
-  watch(state.visited, renderFeeds);
+  watch(state, 'visited', renderFeeds);
+  watch(state, 'inputString', setInputValidationAttr);
+
+  const isValid = value => isURL(value) && !state.getVisitedUrls().includes(value);
+
+  const checkInputValidation = (el) => {
+    const { value } = el;
+    if (value === '') {
+      state.inputString = 'empty';
+    } else if (isValid(value)) {
+      state.inputString = 'valid';
+    } else {
+      state.inputString = 'invalid';
+    }
+  };
 
   // eventListeners
   const input = document.querySelector('input');
-  input.addEventListener('input', (event) => {
-    const currentValue = event.target.value;
-    const element = event.target;
-    // need rewrite
-    if (currentValue === '') {
-      element.classList.remove('is-valid', 'is-invalid');
-    } else if (isValid(currentValue)) {
-      element.classList.remove('is-invalid');
-      element.classList.add('is-valid');
-    } else {
-      element.classList.remove('is-valid');
-      element.classList.add('is-invalid');
-    }
-  });
+  input.addEventListener('input', ({ target }) => checkInputValidation(target));
 
   const submitButton = document.querySelector('button');
   submitButton.addEventListener('click', () => {
