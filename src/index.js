@@ -4,7 +4,7 @@ import 'bootstrap/js/dist/alert';
 import { isURL } from 'validator';
 import axios from 'axios';
 import WatchJS from 'melanke-watchjs';
-import _ from 'lodash';
+import { assign } from 'lodash';
 import $ from 'jquery';
 
 const corsProxy = 'https://cors-anywhere.herokuapp.com/';
@@ -140,7 +140,7 @@ const app = () => {
         axios(`${corsProxy}${item.url}`)
           .then((response) => {
             const receivedFeed = parseFeed(response);
-            _.assign(item.content.articles, receivedFeed.articles);
+            assign(item.content.articles, receivedFeed.articles);
             callWatchers(state.visited, i);
             setTimeout(updateRSS, timeInterval);
           })
