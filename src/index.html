@@ -11,16 +11,18 @@
 
     <!-- Компонент Jumbotron RSS input form -->
     <div class="jumbotron">
-      <div class="form-group">
+      <form class="form-group">
         <h1>RSS Reader</h1>
         <input type="input" class="form-control" id="text" placeholder="Enter URL">
-      </div>
-      <button type="submit" class="btn btn-primary">Submit</button>
-    </div>
-    <!-- RSS feeds output -->
-    <div class='container RSSFeeds'>
-      <ul class='list-group feedsList'>
-      </ul>
+        <br>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+      <br>
+      <!-- RSS feeds output -->
+      <div class='container RSSFeeds'>
+       <ul class='list-group feedsList'>
+       </ul>
+     </div>
     </div>
     <!-- Modal -->
     <div class="modal fade" id="descriptionModal" tabindex="-1" role="dialog" aria-labelledby="descriptionModalLabel" aria-hidden="true">

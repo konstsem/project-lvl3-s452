@@ -43,34 +43,18 @@ const app = () => {
   };
 
   // функция перерисовки rss фидов из state (view)
-  const renderFeeds = (prop) => {
-    const { url, content } = state.visited[prop];
-    // const newFeed = state.visited[prop].content;
-    const newListItem = document.createElement('li');
-    newListItem.classList.add('list-group-item', 'feed');
-    newListItem.dataset.url = url;
-
-    const feedItems = content.articles
-      .reduce((acc, item) => `${acc}<li class="list-group-item d-flex justify-content-between channelItem">
-        <a href="${item.link}">${item.title}</a><button type="button"
+  const renderFeeds = () => {
+    const feedArticles = articles => articles.map(({ link, title, description }) => `<li class="list-group-item d-flex justify-content-between channelItem">
+        <a href="${link}">${title}</a><button type="button"
         class="btn btn-primary" data-toggle="modal" data-target="#descriptionModal"
-        data-whatever="${item.description}">Description</button></li>`, '');
+        data-whatever="${description}">Description</button></li>`).join('');
 
-    const feedContent = `<h5 class="channelTitle">${content.title}</h5>
+    const feedListElement = document.querySelector('.feedsList')
+
+    feedListElement.innerHTML = state.visited.map(({ url, content }) => `<li class="list-grop-item feed" data-url="${url}"><h5 class="channelTitle">${content.title}</h5>
     <div class="channelDiscription">${content.description}</div>
-    <ul class="list-group channelItems">${feedItems}</ul>`;
-    newListItem.insertAdjacentHTML('beforeend', feedContent);
-
-    // check if element with given url is already render
-    const existElement = document.querySelector(`[data-url="${url}"]`);
-    if (existElement) {
-      // if yes, then rerender
-      existElement.replaceWith(newListItem);
-    } else {
-      // if no, just add to the list
-      const RSSFeeds = document.querySelector('.feedsList');
-      RSSFeeds.append(newListItem);
-    }
+    <br>
+    <ul class="list-group channelItems">${feedArticles(content.articles)}</ul></li>`).join('');
   };
 
   // пока корявое но рабочее решение сохранения фида (controller)
@@ -120,11 +104,8 @@ const app = () => {
     }
   };
 
-  const input = document.querySelector('input');
-
-  input.addEventListener('input', ({ target }) => checkInputValidation(target));
-
-  const submit = () => {
+  const submit = (event) => {
+    event.preventDefault();
     if (input.value !== '' && isValid(input.value)) {
       // need rewrite
       const currentUrl = input.value;
@@ -143,8 +124,12 @@ const app = () => {
     }
   };
 
-  const submitButton = document.querySelector('button');
-  submitButton.addEventListener('click', submit);
+  const input = document.querySelector('input');
+  input.addEventListener('input', ({ target }) => checkInputValidation(target));
+  // const submitButton = document.querySelector('button');
+  // submitButton.addEventListener('click', input.submit);
+  const formElement = document.querySelector('form');
+  formElement.addEventListener('submit', submit);
 
   // обновление данных rss потоков ()
   const updateRSS = () => {

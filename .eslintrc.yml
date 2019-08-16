@@ -6,12 +6,10 @@ plugins:
 env:
   node: true
   jest: true
-
-parser: babel-eslint
-
-globals:
   document: true
   DOMParser: true
+
+parser: babel-eslint
 
 extends:
   - 'airbnb-base'
