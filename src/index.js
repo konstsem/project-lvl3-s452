@@ -14,10 +14,13 @@ const { watch, callWatchers } = WatchJS;
 const timeInterval = 5000;
 
 const app = () => {
-  // state -> visited({ url: content })
   const state = {
     visited: [],
     inputString: 'empty',
+    alert: {
+      type: '',
+      message: '',
+    },
     // return array of visited urls
     getVisitedUrls: () => state.visited.map(item => item.url),
     // saving feed to visited
@@ -49,7 +52,7 @@ const app = () => {
         class="btn btn-primary" data-toggle="modal" data-target="#descriptionModal"
         data-whatever="${description}">Description</button></li>`).join('');
 
-    const feedListElement = document.querySelector('.feedsList')
+    const feedListElement = document.querySelector('.feedsList');
 
     feedListElement.innerHTML = state.visited.map(({ url, content }) => `<li class="list-grop-item feed" data-url="${url}"><h5 class="channelTitle">${content.title}</h5>
     <div class="channelDiscription">${content.description}</div>
@@ -81,15 +84,19 @@ const app = () => {
     return newFeed;
   };
 
-  const callAlert = (alertType, text) => {
+  const callAlert = () => {
     $('.alert').alert('close');
-    const alert = `<div class="alert alert-${alertType} role="alert">${text}</div>`;
-    const body = document.querySelector('body');
-    body.insertAdjacentHTML('afterbegin', alert);
+    const { type, message } = state.alert;
+    if (type) {
+      const alert = `<div class="alert alert-${type} role="alert">${message}</div>`;
+      const body = document.querySelector('body');
+      body.insertAdjacentHTML('afterbegin', alert);
+    }
   };
 
   watch(state, 'visited', renderFeeds);
   watch(state, 'inputString', setInputValidationAttr);
+  watch(state, 'alert', callAlert);
 
   const isValid = value => isURL(value) && !state.getVisitedUrls().includes(value);
 
@@ -106,28 +113,28 @@ const app = () => {
 
   const submit = (event) => {
     event.preventDefault();
-    if (input.value !== '' && isValid(input.value)) {
+    const { target } = event;
+    const currentUrl = target.querySelector('input').value;
+    if (currentUrl !== '' && isValid(currentUrl)) {
       // need rewrite
-      const currentUrl = input.value;
+      target.querySelector('input').value = '';
       state.inputString = 'empty';
-      input.value = '';
-      callAlert('info', 'Идет загрузка данных');
+      state.alert = { type: 'info', message: 'Идет загрузка данных' };
       axios(`${corsProxy}${currentUrl}`)
         .then((response) => {
           state.saveFeed(currentUrl, parseFeed(response));
-          $('.alert').alert('close');
+          state.alert = { type: '', message: '' };
         })
         .catch((err) => {
           console.error(err);
-          callAlert('warning', err);
+          state.alert = { type: 'warning', message: err };
         });
     }
   };
 
   const input = document.querySelector('input');
   input.addEventListener('input', ({ target }) => checkInputValidation(target));
-  // const submitButton = document.querySelector('button');
-  // submitButton.addEventListener('click', input.submit);
+
   const formElement = document.querySelector('form');
   formElement.addEventListener('submit', submit);
 
@@ -136,17 +143,17 @@ const app = () => {
     if (state.visited.length === 0) {
       setTimeout(updateRSS, timeInterval);
     } else {
-      state.visited.forEach((item, i) => {
+      state.visited.forEach((item) => {
         axios(`${corsProxy}${item.url}`)
           .then((response) => {
             const receivedFeed = parseFeed(response);
             assign(item.content.articles, receivedFeed.articles);
-            callWatchers(state.visited, i);
+            callWatchers(state.visited);
             setTimeout(updateRSS, timeInterval);
           })
           .catch((err) => {
             console.error(err);
-            callAlert('warning', err);
+            state.alert = { type: 'warning', message: err };
           });
       });
     }
