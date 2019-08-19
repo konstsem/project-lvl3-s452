@@ -27,25 +27,20 @@ const app = () => {
     saveFeed: (url, content) => state.visited.push({ url, content }),
   };
 
-  const setInputValidationAttr = () => {
-    const inputEl = document.querySelector('input');
-    const current = state.inputString;
-    switch (current) {
-      case 'invalid':
-        inputEl.classList.remove('is-valid');
-        inputEl.classList.add('is-invalid');
-        break;
-      case 'valid':
-        inputEl.classList.remove('is-invalid');
-        inputEl.classList.add('is-valid');
-        break;
-      default:
-        inputEl.classList.remove('is-valid', 'is-invalid');
-        break;
+  const isValid = value => isURL(value) && !state.getVisitedUrls().includes(value);
+
+  const checkInputValidation = (el) => {
+    const { value } = el;
+    if (value === '') {
+      state.inputString = 'empty';
+    } else if (isValid(value)) {
+      state.inputString = 'valid';
+    } else {
+      state.inputString = 'invalid';
     }
   };
 
-  // функция перерисовки rss фидов из state (view)
+  // rerender rss feeds from state
   const renderFeeds = () => {
     const feedArticles = articles => articles.map(({ link, title, description }) => `<li class="list-group-item d-flex justify-content-between channelItem">
         <a href="${link}">${title}</a><button type="button"
@@ -60,7 +55,27 @@ const app = () => {
     <ul class="list-group channelItems">${feedArticles(content.articles)}</ul></li>`).join('');
   };
 
-  // пока корявое но рабочее решение сохранения фида (controller)
+  // set attributes and value for input element
+  const setInput = () => {
+    const inputEl = document.querySelector('input');
+    const current = state.inputString;
+    switch (current) {
+      case 'invalid':
+        inputEl.classList.remove('is-valid');
+        inputEl.classList.add('is-invalid');
+        break;
+      case 'valid':
+        inputEl.classList.remove('is-invalid');
+        inputEl.classList.add('is-valid');
+        break;
+      default:
+        inputEl.classList.remove('is-valid', 'is-invalid');
+        inputEl.value = '';
+        break;
+    }
+  };
+
+  // parse rss feed
   const parseFeed = (response) => {
     const parser = new DOMParser();
     const feed = parser.parseFromString(response.data, 'text/xml');
@@ -94,30 +109,16 @@ const app = () => {
     }
   };
 
+  // watchers section
   watch(state, 'visited', renderFeeds);
-  watch(state, 'inputString', setInputValidationAttr);
+  watch(state, 'inputString', setInput);
   watch(state, 'alert', callAlert);
-
-  const isValid = value => isURL(value) && !state.getVisitedUrls().includes(value);
-
-  const checkInputValidation = (el) => {
-    const { value } = el;
-    if (value === '') {
-      state.inputString = 'empty';
-    } else if (isValid(value)) {
-      state.inputString = 'valid';
-    } else {
-      state.inputString = 'invalid';
-    }
-  };
 
   const submit = (event) => {
     event.preventDefault();
     const { target } = event;
     const currentUrl = target.querySelector('input').value;
     if (currentUrl !== '' && isValid(currentUrl)) {
-      // need rewrite
-      target.querySelector('input').value = '';
       state.inputString = 'empty';
       state.alert = { type: 'info', message: 'Идет загрузка данных' };
       axios(`${corsProxy}${currentUrl}`)
@@ -132,13 +133,14 @@ const app = () => {
     }
   };
 
+  // eventListeners section
   const input = document.querySelector('input');
   input.addEventListener('input', ({ target }) => checkInputValidation(target));
 
   const formElement = document.querySelector('form');
   formElement.addEventListener('submit', submit);
 
-  // обновление данных rss потоков ()
+  // update rss data
   const updateRSS = () => {
     if (state.visited.length === 0) {
       setTimeout(updateRSS, timeInterval);
@@ -159,10 +161,11 @@ const app = () => {
     }
   };
 
+  // start update rss data
   setTimeout(updateRSS, timeInterval);
 };
 
-// передача описания в модальное окно
+// send description to modal
 $('#descriptionModal').on('show.bs.modal', function foo(event) {
   const button = $(event.relatedTarget);
   const description = button.data('whatever');
