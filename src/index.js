@@ -3,14 +3,12 @@ import 'bootstrap/js/dist/modal';
 import 'bootstrap/js/dist/alert';
 import { isURL } from 'validator';
 import axios from 'axios';
-import WatchJS from 'melanke-watchjs';
+import { watch } from 'melanke-watchjs';
 import { assign } from 'lodash';
 import $ from 'jquery';
 import render from './renderFeeds';
 
 const corsProxy = 'https://cors-anywhere.herokuapp.com/';
-
-const { watch, callWatchers } = WatchJS;
 
 const timeInterval = 5000;
 
@@ -62,9 +60,7 @@ const setInput = () => {
 };
 
 // parse rss feed
-const parseFeed = (response) => {
-  const parser = new DOMParser();
-  const feed = parser.parseFromString(response.data, 'text/xml');
+const parseFeed = (feed) => {
   const newFeed = {
     title: '',
     description: '',
@@ -116,7 +112,9 @@ formElement.addEventListener('submit', (event) => {
     state.alert = { type: 'info', message: 'Идет загрузка данных' };
     axios(`${corsProxy}${currentUrl}`)
       .then((response) => {
-        state.saveFeed(currentUrl, parseFeed(response));
+        const parser = new DOMParser();
+        const feed = parser.parseFromString(response.data, 'text/xml');
+        state.saveFeed(currentUrl, parseFeed(feed));
         state.alert = { type: '', message: '' };
         state.currentUrl = '';
       })
@@ -135,7 +133,9 @@ const updateRSS = () => {
     state.visited.forEach((item) => {
       axios(`${corsProxy}${item.url}`)
         .then((response) => {
-          const receivedFeed = parseFeed(response);
+          const parser = new DOMParser();
+          const feed = parser.parseFromString(response.data, 'text/xml');
+          const receivedFeed = parseFeed(feed);
           assign(item.content.articles, receivedFeed.articles);
           // callWatchers(state.visited);
           render(state);
