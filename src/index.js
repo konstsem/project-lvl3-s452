@@ -4,15 +4,15 @@ import 'bootstrap/js/dist/alert';
 import { isURL } from 'validator';
 import axios from 'axios';
 import { watch } from 'melanke-watchjs';
-import { assign } from 'lodash';
+// import { assign } from 'lodash';
 import $ from 'jquery';
+import i18next from 'i18next';
 import render from './renderFeeds';
-import messages from './messages';
 
 const corsProxy = 'https://cors-anywhere.herokuapp.com/';
 
 const timeInterval = 5000;
-const language = 'RU';
+const language = 'ru';
 
 const app = () => {
   const state = {
@@ -80,11 +80,31 @@ const app = () => {
     };
   };
 
+  i18next.init({
+    lng: language,
+    debug: true,
+    resources: {
+      en: {
+        translation: {
+          loading: 'Loading data',
+          error: 'An error occurred',
+        },
+      },
+      ru: {
+        translation: {
+          loading: 'Идет загрузка данных',
+          error: 'Произошла ошибка',
+        },
+      },
+    },
+  })
+    .catch(err => console.error(err));
+
   const callAlert = () => {
     $('.alert').alert('close');
     const { type, message } = state.alert;
     if (type) {
-      const alert = `<div class="alert alert-${type} role="alert">${messages[language][message]}</div>`;
+      const alert = `<div class="alert alert-${type} role="alert">${i18next.t(message)}</div>`;
       const body = document.querySelector('body');
       body.insertAdjacentHTML('afterbegin', alert);
     }
@@ -94,12 +114,13 @@ const app = () => {
   watch(state, 'visited', () => render(state));
   watch(state, 'inputString', setInputElement);
   watch(state, 'alert', callAlert);
-  watch(state, 'currentUrl', setInputString);
+  //  watch(state, 'currentUrl', setInputString);
 
   // eventListeners section
   const input = document.querySelector('input');
   input.addEventListener('input', ({ target }) => {
     state.currentUrl = target.value;
+    setInputString();
   });
 
   const formElement = document.querySelector('form');
@@ -108,7 +129,7 @@ const app = () => {
     const { currentUrl } = state;
     if (currentUrl !== '' && isValid(currentUrl)) {
       state.inputString = 'empty';
-      state.alert = { type: 'info', message: 'load' };
+      state.alert = { type: 'info', message: 'loading' };
       axios(`${corsProxy}${currentUrl}`)
         .then((response) => {
           const feed = parseFeed(response.data);
@@ -129,10 +150,12 @@ const app = () => {
       setTimeout(updateRSS, timeInterval);
     } else {
       state.visited.forEach((item) => {
+        const { articles } = item.content;
         axios(`${corsProxy}${item.url}`)
           .then((response) => {
             const receivedFeed = parseFeed(response.data);
-            assign(item.content.articles, receivedFeed.articles);
+            articles.concat(receivedFeed.articles.filter(i => articles.indexOf(i) === -1));
+            // assign(articles, receivedFeed.articles);
             render(state);
             setTimeout(updateRSS, timeInterval);
           })
