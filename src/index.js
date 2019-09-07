@@ -4,7 +4,7 @@ import 'bootstrap/js/dist/alert';
 import { isURL } from 'validator';
 import axios from 'axios';
 import { watch } from 'melanke-watchjs';
-// import { assign } from 'lodash';
+import { unionBy } from 'lodash';
 import $ from 'jquery';
 import i18next from 'i18next';
 import render from './renderFeeds';
@@ -114,7 +114,6 @@ const app = () => {
   watch(state, 'visited', () => render(state));
   watch(state, 'inputString', setInputElement);
   watch(state, 'alert', callAlert);
-  //  watch(state, 'currentUrl', setInputString);
 
   // eventListeners section
   const input = document.querySelector('input');
@@ -149,14 +148,12 @@ const app = () => {
     if (state.visited.length === 0) {
       setTimeout(updateRSS, timeInterval);
     } else {
-      state.visited.forEach((item) => {
+      state.visited.forEach((item, i) => {
         const { articles } = item.content;
         axios(`${corsProxy}${item.url}`)
           .then((response) => {
             const receivedFeed = parseFeed(response.data);
-            articles.concat(receivedFeed.articles.filter(i => articles.indexOf(i) === -1));
-            // assign(articles, receivedFeed.articles);
-            render(state);
+            state.visited[i].content.articles = unionBy(articles, receivedFeed.articles, 'title');
             setTimeout(updateRSS, timeInterval);
           })
           .catch((err) => {
