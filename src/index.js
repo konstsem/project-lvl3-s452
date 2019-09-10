@@ -8,11 +8,31 @@ import { unionBy } from 'lodash';
 import $ from 'jquery';
 import i18next from 'i18next';
 import render from './renderFeeds';
+import translations from './translations';
 
 const corsProxy = 'https://cors-anywhere.herokuapp.com/';
 
+// definitions
 const timeInterval = 5000;
 const language = 'ru';
+
+// parse rss feed
+const parseFeed = (data) => {
+  const parser = new DOMParser();
+  const feed = parser.parseFromString(data, 'text/xml');
+  const title = feed.querySelector('title').textContent;
+  const description = feed.querySelector('description').textContent;
+  const items = feed.querySelectorAll('item');
+  return {
+    title,
+    description: description || '', // description may not exist
+    articles: [...items].map(item => ({
+      title: item.querySelector('title').textContent,
+      link: item.querySelector('link').textContent,
+      description: item.querySelector('description').textContent,
+    })),
+  };
+};
 
 const app = () => {
   const state = {
@@ -62,41 +82,10 @@ const app = () => {
     }
   };
 
-  // parse rss feed
-  const parseFeed = (data) => {
-    const parser = new DOMParser();
-    const feed = parser.parseFromString(data, 'text/xml');
-    const title = feed.querySelector('title').textContent;
-    const description = feed.querySelector('description').textContent;
-    const items = feed.querySelectorAll('item');
-    return {
-      title,
-      description: description || '', // description may not exist
-      articles: [...items].map(item => ({
-        title: item.querySelector('title').textContent,
-        link: item.querySelector('link').textContent,
-        description: item.querySelector('description').textContent,
-      })),
-    };
-  };
-
   i18next.init({
     lng: language,
     debug: true,
-    resources: {
-      en: {
-        translation: {
-          loading: 'Loading data',
-          error: 'An error occurred',
-        },
-      },
-      ru: {
-        translation: {
-          loading: 'Идет загрузка данных',
-          error: 'Произошла ошибка',
-        },
-      },
-    },
+    resources: translations,
   })
     .catch(err => console.error(err));
 
