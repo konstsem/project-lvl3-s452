@@ -22,7 +22,7 @@
   "homepage": "https://github.com/konstsem/project-lvl3-s452#readme",
   "dependencies": {
     "@babel/polyfill": "^7.2.5",
-    "axios": "^0.18.1",
+    "axios": "^0.21.1",
     "bootstrap": "^4.1.2",
     "i18next": "^17.0.13",
     "jquery": "^3.4.1",
